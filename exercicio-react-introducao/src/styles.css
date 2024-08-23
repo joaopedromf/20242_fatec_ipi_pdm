@@ -1,0 +1,13 @@
+.estilos-terceiro-elemento{
+    padding: 8px;
+    flex-basis: 20%;
+    background-color: #e4dded;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #af83ec;
+}
+
+.estilos-terceiro-elemento img{
+    width: 100%;
+    border-radius: 8px;
+}
