@@ -11,7 +11,7 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 
 interface Lembrete{
-  id: string;
+  id?: string;
   texto: string;
 }
 
@@ -19,24 +19,61 @@ export default function App() {
   // guardar o que o usuário digite numa variável de estado, usando o hook useState, chame essa variável de lembrete e a função associada de setLembrete
   // exibir o lembrete logo abaixo do TextInput usando um Text
   // resultado esperado: a cada letra digitada, a aplicação exibe o novo texto logo abaixo do campo em que o usuário digita
-  const [lembrete, setLembrete] = useState('')
+  const [lembrete, setLembrete] = useState<Lembrete>({texto: ''})
   const [lembretes, setLembretes] = useState<Lembrete[]>([])
+  const [emModoEdicao, setEmModoEdicao] = useState(false)
 
   const adicionar = () => {
-    if(lembrete.length >= 1){
+    if(lembrete.texto.length >= 1){
       //construir um lembrete com id igual à data atual do sistema e texto igual ao valor existente na variável de estado
       const novoLembrete: Lembrete = {
         id: Date.now().toString(),
-        texto: lembrete
+        texto: lembrete.texto
       }
       //utilizar o hook associado à lista de lembretes para adicionar o novo lembrete no final da lista
       setLembretes(lembretesAtual => [...lembretesAtual, novoLembrete])
       //limpar o campo em que o usuário digita o lembrete atualizando a variável de estado correspondente
-      setLembrete('')
+      setLembrete({texto: ''})
     }
     else{
       Alert.alert('É preciso digitar um lembrete')
     }
+  }
+
+  const remover = (lembrete: Lembrete) => {
+    // Alert.alert(
+    //   'Remover lembrete',
+    //   `Deseja remover este lembrete? ${lembrete.texto}`,
+    //   [
+    //     {
+    //       text: 'Cancelar',
+    //       style: 'cancel',          
+    //     },
+    //     {
+    //       text: 'Remover',
+    //       style: 'destructive',
+    //       onPress: () => {
+    //         setLembretes(
+    //           lembretesAtual => lembretesAtual.filter(item => item.id !== lembrete.id)
+    //         )
+    //       }
+    //     }
+    //   ]
+    // )
+    setLembretes(
+      lembretesAtual => lembretesAtual.filter(item => item.id !== lembrete.id)
+    )
+  }
+
+  const atualizar = () => {
+    const lembretesAtualizados = lembretes.map(item => {
+      if(item.id === lembrete.id)
+        return lembrete
+      return item
+    })
+    setLembretes(lembretesAtualizados)
+    setEmModoEdicao(false)
+    setLembrete({texto: ''})
   }
 
   return (
@@ -44,16 +81,20 @@ export default function App() {
       <TextInput 
         style={styles.input}
         placeholder='Digite um lembrete...'
-        onChangeText={setLembrete}
-        value={lembrete}
+        onChangeText={(novoTexto) => setLembrete({id: lembrete.id, texto: novoTexto})}
+        value={lembrete.texto}
       />
-      <Pressable style={styles.button} onPress={adicionar}>
+      <Pressable 
+        style={styles.button} 
+        onPress={emModoEdicao ? atualizar : adicionar}>
         <Text style={styles.buttonText}>
-          Salvar lembrete
+          {
+            emModoEdicao ? "Atualizar lembrete" : "Salvar lembrete"
+          }
         </Text>
       </Pressable>
       <FlatList 
-        keyExtractor={item => item.id}
+        keyExtractor={item => (item.id)!}
         style={styles.list}
         data={lembretes}
         renderItem={l => (
@@ -62,13 +103,16 @@ export default function App() {
               {l.item.texto}
             </Text>
             <View style={styles.listItemButtons}>
-              <Pressable>
+              <Pressable onPress={() => remover(l.item)}>
                 <AntDesign 
                   name='delete'
                   size={24}
                 />
               </Pressable>
-              <Pressable>
+              <Pressable 
+                onPress={() => {
+                  setLembrete({id: l.item.id, texto: l.item.texto})
+                  setEmModoEdicao(true)}}>
                 <AntDesign 
                   name='edit'
                   size={24}
